@@ -19,7 +19,9 @@ with open("tfidf_vocab.json") as f:
 tfidf = TfidfVectorizer(**tfidf_params)
 tfidf.vocabulary_ = tfidf_vocab
 
-# ✅ Initialize TF-IDF internals with two dummy documents
+# ✅ Override min_df and max_df to safely dummy-fit without ValueError
+tfidf.min_df = 1
+tfidf.max_df = 1.0
 tfidf.fit(["placeholder one", "placeholder two"])
 tfidf._tfidf.idf_ = np.ones(len(tfidf.vocabulary_))  # neutral weights
 
