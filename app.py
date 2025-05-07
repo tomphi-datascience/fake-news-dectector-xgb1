@@ -2,12 +2,13 @@ import streamlit as st
 import joblib
 import json
 import re
+import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-# === Load the model ===
+# === Load the trained model ===
 model = joblib.load("fakenews_model.pkl")
 
-# === Load TF-IDF vectorizer parameters and vocabulary ===
+# === Load TF-IDF vectorizer configuration and vocabulary ===
 with open("tfidf_params.json") as f:
     tfidf_params = json.load(f)
 
@@ -17,10 +18,11 @@ with open("tfidf_vocab.json") as f:
 # === Rebuild the TF-IDF vectorizer ===
 tfidf = TfidfVectorizer(**tfidf_params)
 tfidf.vocabulary_ = tfidf_vocab
-
-# ✅ Initialize internal weights to prevent AttributeError
 tfidf._validate_vocabulary()
-tfidf.fit(["dummy placeholder text"])
+
+# ✅ Manually initialize internal IDF weights to prevent AttributeError
+vocab_size = len(tfidf_vocab)
+tfidf._tfidf._idf_diag = np.eye(vocab_size)  # safe dummy identity matrix
 
 # === Streamlit UI ===
 st.set_page_config(page_title="Fake News Classifier", layout="centered")
