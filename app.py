@@ -4,26 +4,30 @@ import json
 import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-# Load XGBoost model
+# === Load the model ===
 model = joblib.load("fakenews_model.pkl")
 
-# Load TF-IDF vectorizer config and vocabulary
+# === Load TF-IDF vectorizer parameters and vocabulary ===
 with open("tfidf_params.json") as f:
     tfidf_params = json.load(f)
 
 with open("tfidf_vocab.json") as f:
     tfidf_vocab = json.load(f)
 
-# Rebuild the TF-IDF vectorizer
+# === Rebuild the TF-IDF vectorizer ===
 tfidf = TfidfVectorizer(**tfidf_params)
 tfidf.vocabulary_ = tfidf_vocab
 
-# Streamlit UI setup
+# ✅ Initialize internal weights to prevent AttributeError
+tfidf._validate_vocabulary()
+tfidf.fit(["dummy placeholder text"])
+
+# === Streamlit UI ===
 st.set_page_config(page_title="Fake News Classifier", layout="centered")
 st.title("📰 Fake News Classifier")
 st.write("Paste a news article below and find out whether it's **real** or **fake**.")
 
-# Text cleaning function
+# === Text cleaning function ===
 def clean_text_input(text):
     text = text.lower()
     text = re.sub(r"http\S+|www\S+|https\S+", '', text)
@@ -31,7 +35,7 @@ def clean_text_input(text):
     text = re.sub(r"\s+", ' ', text).strip()
     return text
 
-# User input
+# === User input ===
 user_input = st.text_area("📝 Paste your news article text:", height=200)
 
 if st.button("🔍 Predict"):
