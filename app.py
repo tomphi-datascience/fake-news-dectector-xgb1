@@ -4,6 +4,8 @@ import json
 import re
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import _tfidf
+from scipy.sparse import diags
 
 # === Load trained model ===
 model = joblib.load("fakenews_model.pkl")
@@ -21,19 +23,15 @@ with open("tfidf_idf.json") as f:
 with open("tfidf_stopwords.json") as f:
     stop_words = json.load(f)
 
-# === Override thresholds to prevent fit() errors ===
-tfidf_params["min_df"] = 1
-tfidf_params["max_df"] = 1.0
-
-# === Rebuild TfidfVectorizer and safely restore internals ===
+# === Rebuild TfidfVectorizer and restore internals ===
 tfidf = TfidfVectorizer(**tfidf_params)
 tfidf.vocabulary_ = tfidf_vocab
 tfidf.fixed_vocabulary_ = True
 
-# ✅ Safe dummy .fit() to trigger internal setup
-tfidf.fit(["placeholder one", "placeholder two", "placeholder three"])
-
+# ✅ Rebuild TF-IDF transformer internals
+tfidf._tfidf = _tfidf.TfidfTransformer()
 tfidf._tfidf.idf_ = np.array(idf_values)
+tfidf._tfidf._idf_diag = diags(tfidf._tfidf.idf_, offsets=0)
 tfidf.stop_words_ = set(stop_words)
 
 # === Streamlit UI ===
