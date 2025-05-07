@@ -5,31 +5,30 @@ import re
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-# === Load the trained model ===
+# === Load trained model ===
 model = joblib.load("fakenews_model.pkl")
 
-# === Load TF-IDF vectorizer configuration and vocabulary ===
+# === Load TF-IDF config and vocab ===
 with open("tfidf_params.json") as f:
     tfidf_params = json.load(f)
 
 with open("tfidf_vocab.json") as f:
     tfidf_vocab = json.load(f)
 
-# === Rebuild the TF-IDF vectorizer ===
+# === Rebuild vectorizer ===
 tfidf = TfidfVectorizer(**tfidf_params)
 tfidf.vocabulary_ = tfidf_vocab
-tfidf._validate_vocabulary()
 
-# ✅ Initialize dummy IDF weights to allow transform() without .fit()
-vocab_size = len(tfidf_vocab)
-tfidf._tfidf.idf_ = np.ones(vocab_size)
+# ✅ Initialize internal TF-IDF structure via dummy fit
+tfidf.fit(["placeholder text"])
+tfidf._tfidf.idf_ = np.ones(len(tfidf.vocabulary_))  # Neutral IDF weights
 
 # === Streamlit UI ===
 st.set_page_config(page_title="Fake News Classifier", layout="centered")
 st.title("📰 Fake News Classifier")
 st.write("Paste a news article below and find out whether it's **real** or **fake**.")
 
-# === Text cleaning function ===
+# === Text cleaning ===
 def clean_text_input(text):
     text = text.lower()
     text = re.sub(r"http\S+|www\S+|https\S+", '', text)
