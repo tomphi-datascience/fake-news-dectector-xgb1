@@ -8,22 +8,24 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 # === Load trained model ===
 model = joblib.load("fakenews_model.pkl")
 
-# === Load TF-IDF config and vocabulary ===
+# === Load TF-IDF configuration files ===
 with open("tfidf_params.json") as f:
     tfidf_params = json.load(f)
 
 with open("tfidf_vocab.json") as f:
     tfidf_vocab = json.load(f)
 
-# === Rebuild TF-IDF vectorizer ===
+with open("tfidf_idf.json") as f:
+    idf_values = json.load(f)
+
+with open("tfidf_stopwords.json") as f:
+    stop_words = json.load(f)
+
+# === Rebuild TfidfVectorizer and restore internals ===
 tfidf = TfidfVectorizer(**tfidf_params)
 tfidf.vocabulary_ = tfidf_vocab
-
-# ✅ Override min_df and max_df to safely dummy-fit without ValueError
-tfidf.min_df = 1
-tfidf.max_df = 1.0
-tfidf.fit(["placeholder one", "placeholder two"])
-tfidf._tfidf.idf_ = np.ones(len(tfidf.vocabulary_))  # neutral weights
+tfidf._tfidf.idf_ = np.array(idf_values)
+tfidf.stop_words_ = set(stop_words)
 
 # === Streamlit UI ===
 st.set_page_config(page_title="Fake News Classifier", layout="centered")
@@ -39,16 +41,3 @@ def clean_text_input(text):
     return text
 
 # === User input ===
-user_input = st.text_area("📝 Paste your news article text:", height=200)
-
-if st.button("🔍 Predict"):
-    if user_input.strip() == "":
-        st.warning("Please enter some text first.")
-    else:
-        cleaned = clean_text_input(user_input)
-        vectorized = tfidf.transform([cleaned])
-        prediction = model.predict(vectorized)[0]
-        probability = model.predict_proba(vectorized)[0][prediction]
-        label = "REAL 🟢" if prediction == 1 else "FAKE 🔴"
-        st.markdown(f"### 🧠 Prediction: **{label}**")
-        st.markdown(f"**Confidence:** {probability:.2%}")
