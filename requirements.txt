@@ -1,12 +1,10 @@
-pandas
-numpy
+numpy==1.23.5
 scikit-learn==1.1.3
 xgboost
-matplotlib
+pandas
 seaborn
+matplotlib
 nltk
 joblib
 imbalanced-learn
-wordcloud
 streamlit
-
