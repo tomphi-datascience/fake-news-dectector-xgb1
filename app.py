@@ -21,12 +21,16 @@ with open("tfidf_idf.json") as f:
 with open("tfidf_stopwords.json") as f:
     stop_words = json.load(f)
 
+# === Override thresholds to prevent fit() errors ===
+tfidf_params["min_df"] = 1
+tfidf_params["max_df"] = 1.0
+
 # === Rebuild TfidfVectorizer and safely restore internals ===
 tfidf = TfidfVectorizer(**tfidf_params)
 tfidf.vocabulary_ = tfidf_vocab
 tfidf.fixed_vocabulary_ = True
 
-# ✅ Trigger internal _tfidf setup using 3 dummy docs (min_df-safe)
+# ✅ Safe dummy .fit() to trigger internal setup
 tfidf.fit(["placeholder one", "placeholder two", "placeholder three"])
 
 tfidf._tfidf.idf_ = np.array(idf_values)
