@@ -8,20 +8,20 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 # === Load trained model ===
 model = joblib.load("fakenews_model.pkl")
 
-# === Load TF-IDF config and vocab ===
+# === Load TF-IDF config and vocabulary ===
 with open("tfidf_params.json") as f:
     tfidf_params = json.load(f)
 
 with open("tfidf_vocab.json") as f:
     tfidf_vocab = json.load(f)
 
-# === Rebuild vectorizer ===
+# === Rebuild TF-IDF vectorizer ===
 tfidf = TfidfVectorizer(**tfidf_params)
 tfidf.vocabulary_ = tfidf_vocab
 
-# ✅ Initialize internal TF-IDF structure via dummy fit
-tfidf.fit(["placeholder text"])
-tfidf._tfidf.idf_ = np.ones(len(tfidf.vocabulary_))  # Neutral IDF weights
+# ✅ Initialize TF-IDF internals with two dummy documents
+tfidf.fit(["placeholder one", "placeholder two"])
+tfidf._tfidf.idf_ = np.ones(len(tfidf.vocabulary_))  # neutral weights
 
 # === Streamlit UI ===
 st.set_page_config(page_title="Fake News Classifier", layout="centered")
