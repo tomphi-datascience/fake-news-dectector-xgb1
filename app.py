@@ -20,9 +20,9 @@ tfidf = TfidfVectorizer(**tfidf_params)
 tfidf.vocabulary_ = tfidf_vocab
 tfidf._validate_vocabulary()
 
-# ✅ Manually initialize internal IDF weights to prevent AttributeError
+# ✅ Initialize dummy IDF weights to allow transform() without .fit()
 vocab_size = len(tfidf_vocab)
-tfidf._tfidf._idf_diag = np.eye(vocab_size)  # safe dummy identity matrix
+tfidf._tfidf.idf_ = np.ones(vocab_size)
 
 # === Streamlit UI ===
 st.set_page_config(page_title="Fake News Classifier", layout="centered")
