@@ -21,11 +21,13 @@ with open("tfidf_idf.json") as f:
 with open("tfidf_stopwords.json") as f:
     stop_words = json.load(f)
 
-# === Rebuild TfidfVectorizer and restore internals ===
+# === Rebuild TfidfVectorizer and safely restore internals ===
 tfidf = TfidfVectorizer(**tfidf_params)
 tfidf.vocabulary_ = tfidf_vocab
-tfidf._tfidf.idf_ = np.array(idf_values)
-tfidf.stop_words_ = set(stop_words)
+tfidf.fixed_vocabulary_ = True             # ✅ Prevent .fit() from changing vocab
+tfidf.fit(["placeholder"])                 # ✅ Trigger internal setup (_tfidf)
+tfidf._tfidf.idf_ = np.array(idf_values)   # ✅ Restore saved idf values
+tfidf.stop_words_ = set(stop_words)        # ✅ Restore stopwords
 
 # === Streamlit UI ===
 st.set_page_config(page_title="Fake News Classifier", layout="centered")
