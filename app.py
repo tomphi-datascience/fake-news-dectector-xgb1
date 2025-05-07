@@ -3,8 +3,7 @@ import joblib
 import json
 import re
 import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.feature_extraction.text import _tfidf
+from sklearn.feature_extraction.text import TfidfVectorizer, TfidfTransformer
 from scipy.sparse import diags
 
 # === Load trained model ===
@@ -23,13 +22,13 @@ with open("tfidf_idf.json") as f:
 with open("tfidf_stopwords.json") as f:
     stop_words = json.load(f)
 
-# === Rebuild TfidfVectorizer and restore internals ===
+# === Rebuild TfidfVectorizer ===
 tfidf = TfidfVectorizer(**tfidf_params)
 tfidf.vocabulary_ = tfidf_vocab
 tfidf.fixed_vocabulary_ = True
 
-# ✅ Rebuild TF-IDF transformer internals
-tfidf._tfidf = _tfidf.TfidfTransformer()
+# ✅ Restore internal TF-IDF transformer safely
+tfidf._tfidf = TfidfTransformer()
 tfidf._tfidf.idf_ = np.array(idf_values)
 tfidf._tfidf._idf_diag = diags(tfidf._tfidf.idf_, offsets=0)
 tfidf.stop_words_ = set(stop_words)
